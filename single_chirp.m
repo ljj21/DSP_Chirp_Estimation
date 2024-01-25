@@ -1,6 +1,6 @@
 function [start_time, init_freq, duration, bandwidth] = single_chirp(observed_signal, t, fs)
-    fLevel = 512;
-    WinLen = 64;
+    fLevel = 64;
+    WinLen = 256;
     alpha = 0;
     alpha_pre = 0;
     iter_cnt = 0;
@@ -17,6 +17,9 @@ function [start_time, init_freq, duration, bandwidth] = single_chirp(observed_si
         coefficients = polyfit(observed_time, observed_freq, 1);
         alpha = coefficients(1);
         iter_cnt = iter_cnt + 1;
+        if(iter_cnt > 10)
+            break;
+        end
     end
 
     start_time = observed_time(1);
