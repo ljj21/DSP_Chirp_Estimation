@@ -1,4 +1,7 @@
 function observed_signal = truncated_signal(signal, t1, t2, fs)
+    % t1 为信号的起始时间
+    % t2 为信号的结束时间
+    % fs 为采样率
     len = length(signal);
     t = ones(1, len);
     index1 = floor(t1*fs) + 1;

@@ -4,6 +4,7 @@ close all;
 fs = 50e6; % 采样率为50MHz
 T = 10e-6; % 脉冲持续时间为10μs
 t = 0: 1/fs: T - 1/fs; % 时间向量
+%%
 f0 = 15e6; % 起始频率为15MHz
 f1 = 35e6; % 结束频率为35MHz
 
@@ -28,15 +29,19 @@ spectrogram(observed_signal, window_size, overlap, nfft, fs, 'yaxis');
 title("Chirp Signal (w=" + num2str(window_size) + ")");
 
 %%
-start_time = 3.8e-6;
-duration = 7.9e-6 - start_time;
-zero_freq = 6e6;
-end_freq = 23.8e6;
+start_time = 2.3e-6;
+duration = 4.9e-6 - start_time;
+zero_freq = 18e6;
+end_freq = 15.2e6;
+% 生成chirp信号
 chirp_signal = chirp(t, zero_freq, T, end_freq, "linear", 90);
 init_freq = start_time / 1e-5 * (end_freq - zero_freq) + zero_freq;
 bandwidth = abs(duration / 1e-5 * (end_freq - zero_freq));
+% 将chirp信号在时域上截断
 observed_signal = truncated_signal(chirp_signal, start_time, start_time + duration, fs);
+% 信噪比
 SNR = 3:30;
+% 每个信噪比下重复仿真的次数
 simu_num = 10;
 start_time_est = zeros(simu_num, length(SNR));
 init_freq_est = zeros(simu_num, length(SNR));
@@ -45,7 +50,9 @@ bandwidth_est = zeros(simu_num, length(SNR));
 
 for k = 1:length(SNR)
     for j = 1:simu_num
+        % 添加噪声
         noisy_signal = awgn(observed_signal, SNR(k));
+        % 估计参数
         [start_time_est(j, k), init_freq_est(j, k), duration_est(j, k), bandwidth_est(j, k)] = single_chirp(noisy_signal, t, fs);
     end
 end
@@ -76,26 +83,31 @@ semilogy(SNR, bandwidth_RMSE);
 xlabel('SNR/dB');
 ylabel('RMSE');
 title('Bandwidth RMSE');
-
-
-
 %%
-
-chirp_signal = chirp(t, 6e6, T, 23.8e6, "linear", 90);
-chirp_signal2 = chirp(t, 9.7e6, T, 6e6, "linear", 90);
-chirp_signal3 = chirp(t, 2e6, T, 15e6, "linear", 90);
+clc;
+chirp_signal = chirp(t, 16e6, T, 23.8e6, "linear", 90);
+chirp_signal2 = chirp(t, 0.7e6, T, 20e6, "linear", 90);
+chirp_signal3 = chirp(t, 15e6, T, 12e6, "linear", 90);
 
 observed_signal1 = truncated_signal(chirp_signal, 1e-6, 4e-6, fs);
-observed_signal2 = truncated_signal(chirp_signal2, 4e-6, 7e-6, fs);
-observed_signal3 = truncated_signal(chirp_signal3, 6e-6, 9e-6, fs);
+observed_signal2 = truncated_signal(chirp_signal2, 2.9e-6, 7.9e-6, fs);
+observed_signal3 = truncated_signal(chirp_signal3, 3.8e-6, 9e-6, fs);
 
-observed_signal = observed_signal1 + observed_signal3 + observed_signal2;
-% observed_signal = chirp(t, 4e6, T, 4e6, "linear", 90);
-% observed_signal = awgn(observed_signal, 40);
-signal_num = 3;
+observed_signal = observed_signal1 + observed_signal2 + observed_signal3;
+% 信噪比为20dB
+observed_signal = awgn(observed_signal, 20);
 fLevel = 512;
-[start_time, init_freq, duration, bandwidth, detected_alpha] = multi_chirp(observed_signal, 4, fs, fLevel);
-
+% 在这里作chirplet变换的目的是绘制时频图
+[Spec, Freq, ~] = Chirplet_Transform(observed_signal, fLevel, 64, fs, 0);
+figure;
+imagesc(t,Freq,abs(Spec));
+JET = colormap(jet);
+colormap (JET);   % Set the current colormap Style 
+box on;
+colorbar off;
+% 调用multi_chirp估计参数
+[start_time, init_freq, duration, bandwidth, detected_alpha] = multi_chirp(observed_signal, fs, fLevel);
+% 将估计出来的参数输出，注意由于没有给出信号的个数，估计出来的信号个数未必等于真实信号
 for k = 1:length(start_time)
     fprintf('Start time of signal %d is %fe-6s\n', k, 1e6 * start_time(k));
     fprintf('Initial frequency of signal %d is %fe6Hz\n', k, 1e-6 * init_freq(k));
