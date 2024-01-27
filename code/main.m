@@ -85,15 +85,17 @@ ylabel('RMSE');
 title('Bandwidth RMSE');
 %%
 clc;
-chirp_signal = chirp(t, 16e6, T, 23.8e6, "linear", 90);
-chirp_signal2 = chirp(t, 0.7e6, T, 20e6, "linear", 90);
-chirp_signal3 = chirp(t, 15e6, T, 12e6, "linear", 90);
+chirp_signal1 = chirp(t, 10.8e6, T, 23.8e6, "linear", 90);
+chirp_signal2 = chirp(t, 0.7e6, T, 3.0e6, "linear", 90);
+chirp_signal3 = chirp(t, 1.5e6, T, 20e6, "linear", 90);
+chirp_signal4 = chirp(t, 19e6, T, 6.5e6, "linear", 90);
 
-observed_signal1 = truncated_signal(chirp_signal, 1e-6, 4e-6, fs);
-observed_signal2 = truncated_signal(chirp_signal2, 2.9e-6, 7.9e-6, fs);
-observed_signal3 = truncated_signal(chirp_signal3, 3.8e-6, 9e-6, fs);
+observed_signal1 = truncated_signal(chirp_signal1, 1e-6, 5e-6, fs);
+observed_signal2 = truncated_signal(chirp_signal2, 0.7e-6, 4e-6, fs);
+observed_signal3 = truncated_signal(chirp_signal3, 5.8e-6, 9.6e-6, fs);
+observed_signal4 = truncated_signal(chirp_signal4, 4.8e-6, 8.2e-6, fs);
 
-observed_signal = observed_signal1 + observed_signal2 + observed_signal3;
+observed_signal = observed_signal1 + observed_signal2 + observed_signal3 + observed_signal4;
 % 信噪比为20dB
 observed_signal = awgn(observed_signal, 20);
 fLevel = 512;
